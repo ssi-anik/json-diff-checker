@@ -162,7 +162,6 @@ class App extends Component {
     }
 
     render () {
-        console.log(this.state.sourceDoesNotContain);
         return (
             <Container fluid style = {{
                 paddingLeft: '15px',
