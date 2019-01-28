@@ -113,20 +113,38 @@ class App extends Component {
         });
     }
 
+    getObjectKeys (obj, root = '') {
+        let keys = [];
+        for ( let key in obj ) {
+            let missingKey = root.length ? root + '[' + key + ']' : key;
+            if ( typeof obj[key] == typeof {} ) {
+                keys = keys.concat(this.getObjectKeys(obj[key], missingKey));
+            } else {
+                keys.push(missingKey);
+            }
+        }
+
+        return keys;
+    }
+
     differenceByKey (source, destination, root = '') {
         let changes = [];
         for ( let key in source ) {
+            let missingKey = root.length ? root + '[' + key + ']' : key;
             // destination has the key
             if ( destination[key] !== undefined ) {
-                // source and destination keys contain the same type of object and any of them is type of object
-                // iterate again.
-                /*if (typeof source[key] == typeof destination[key] && typeof destination[key] == typeof {}) {
-                 console.log(key);
-                 root = root.length > 0 ? root + '.' + key : key;
-                 changes.concat(this.differenceByKey(source[key], destination[key], root));
-                 }*/
+                // source key holds an object, but the destination doesn't hold any object
+                if ( typeof source[key] === typeof {} && typeof destination[key] !== typeof {} ) {
+                    changes = changes.concat(this.getObjectKeys(source[key], missingKey));
+                } else if ( typeof source[key] === typeof {} && typeof source[key] === typeof destination[key] ) {
+                    changes = changes.concat(this.differenceByKey(source[key], destination[key], missingKey));
+                }
             } else {
-                changes.push(key);
+                if ( typeof source[key] === typeof {} ) {
+                    changes = changes.concat(this.getObjectKeys(source[key], missingKey));
+                } else {
+                    changes.push(missingKey);
+                }
             }
         }
 
