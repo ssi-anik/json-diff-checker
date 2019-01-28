@@ -32,7 +32,7 @@ class App extends Component {
             sourceJson: {},
             destinationJson: {},
 
-            differenceType: '',
+            differenceType: 'key',
 
             sourceBy: '',
             destinationBy: '',
@@ -200,6 +200,7 @@ class App extends Component {
                     button
                     className = 'icon'
                     selection
+                    defaultValue={'key'}
                     options = {this.options} />
                 <Divider />
                 <Grid divided = 'vertically'>
