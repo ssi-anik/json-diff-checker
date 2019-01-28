@@ -15,7 +15,7 @@ export const DataHolder = (props) => {
             <Form>
                 <Form.Field
                     rows = {20}
-                    error = {props.hasParseError && (true == props.hasParseError)}
+                    error = {props.hasParseError && (true === props.hasParseError)}
                     control = {TextArea}
                     placeholder = {props.textarea_placeholder}
                     onChange = {(event) => props.onTextAreaChange(event)}

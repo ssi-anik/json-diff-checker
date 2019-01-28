@@ -32,6 +32,8 @@ class App extends Component {
             sourceJson: {},
             destinationJson: {},
 
+            differenceType: '',
+
             sourceBy: '',
             destinationBy: '',
 
@@ -48,6 +50,7 @@ class App extends Component {
         this.rightFromUserOnChange = this.rightFromUserOnChange.bind(this);
 
         this.handleDifferenceDropdown = this.handleDifferenceDropdown.bind(this);
+        this.showDifferences = this.showDifferences.bind(this);
     }
 
     parseJSON (str) {
@@ -85,6 +88,8 @@ class App extends Component {
         this.setState({
             sourceParseError: parseError,
             sourceJson: source
+        }, () => {
+            this.showDifferences();
         });
     }
 
@@ -103,10 +108,12 @@ class App extends Component {
         this.setState({
             destinationParseError: parseError,
             destinationJson: destination
+        }, () => {
+            this.showDifferences();
         });
     }
 
-    keyDifferenceChecker (source, destination, root = '') {
+    differenceByKey (source, destination, root = '') {
         let changes = [];
         for ( let key in source ) {
             // destination has the key
@@ -114,10 +121,10 @@ class App extends Component {
                 // source and destination keys contain the same type of object and any of them is type of object
                 // iterate again.
                 /*if (typeof source[key] == typeof destination[key] && typeof destination[key] == typeof {}) {
-                    console.log(key);
-                    root = root.length > 0 ? root + '.' + key : key;
-                    changes.concat(this.keyDifferenceChecker(source[key], destination[key], root));
-                }*/
+                 console.log(key);
+                 root = root.length > 0 ? root + '.' + key : key;
+                 changes.concat(this.differenceByKey(source[key], destination[key], root));
+                 }*/
             } else {
                 changes.push(key);
             }
@@ -126,39 +133,55 @@ class App extends Component {
         return changes;
     }
 
-    handleDifferenceDropdown (event, data) {
-        if ( Object.keys(this.state.sourceJson).length == 0) {
-            alert((this.state.sourceBy ? this.state.sourceBy : 'Source') + ' is not set to check');
+    showDifferences () {
+        let type = this.state.differenceType;
+
+        if ( type.length === 0 ) {
             return;
         }
 
-        if ( Object.keys(this.state.destinationJson).length == 0 ) {
-            alert((this.state.destinationBy ? this.state.destinationBy : 'Destination') + ' is not set to check');
-            return;
+        if ( Object.keys(this.state.sourceJson).length === 0 ) {
+            this.setState({
+                sourceJson: {}
+            });
         }
+
+        if ( Object.keys(this.state.destinationJson).length === 0 ) {
+            this.setState({
+                destinationJson: {}
+            });
+        }
+
         // initialize to default
         this.setState({
             sourceDoesNotContain: [],
             destinationDoesNotContain: [],
-        })
-        switch ( data.value ) {
+        });
+
+        switch ( type ) {
             case 'value':
                 break;
             case 'key':
-                let sourceDoesNotContain = this.keyDifferenceChecker(this.state.destinationJson, this.state.sourceJson);
+                let sourceDoesNotContain = this.differenceByKey(this.state.destinationJson, this.state.sourceJson);
                 this.setState({
                     sourceDoesNotContain: sourceDoesNotContain
                 });
-
-                let destinationDoesNotContain = this.keyDifferenceChecker(this.state.sourceJson, this.state.destinationJson);
+                let destinationDoesNotContain = this.differenceByKey(this.state.sourceJson, this.state.destinationJson);
                 this.setState({
                     destinationDoesNotContain: destinationDoesNotContain
                 });
                 break;
             default:
-                alert('Invalid changes');
                 return;
         }
+    }
+
+    handleDifferenceDropdown (event, { value }) {
+        this.setState({
+            differenceType: value
+        }, () => {
+            this.showDifferences();
+        });
     }
 
     render () {
@@ -168,7 +191,16 @@ class App extends Component {
                 paddingRight: '15px',
                 paddingTop: '5px'
             }}>
-                <Dropdown onChange = { this.handleDifferenceDropdown } placeholder = 'Difference By' fluid selection options = {this.options} />
+                <Dropdown
+                    onChange = { this.handleDifferenceDropdown }
+                    placeholder = 'Difference By'
+                    icon = 'sync alternate'
+                    fluid
+                    labeled
+                    button
+                    className = 'icon'
+                    selection
+                    options = {this.options} />
                 <Divider />
                 <Grid divided = 'vertically'>
                     <Grid.Row columns = {2}>
@@ -188,7 +220,7 @@ class App extends Component {
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
-                <Divider horizontal> Results Below </Divider>
+                <Divider horizontal> Results shown Below </Divider>
                 <Grid divided = 'vertically'>
                     <Grid.Row columns = {2}>
                         <Grid.Column>
