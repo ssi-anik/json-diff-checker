@@ -168,6 +168,8 @@ class App extends Component {
                 paddingRight: '15px',
                 paddingTop: '5px'
             }}>
+                <Dropdown onChange = { this.handleDifferenceDropdown } placeholder = 'Difference By' fluid selection options = {this.options} />
+                <Divider />
                 <Grid divided = 'vertically'>
                     <Grid.Row columns = {2}>
                         <Grid.Column>
@@ -186,10 +188,7 @@ class App extends Component {
                         </Grid.Column>
                     </Grid.Row>
                 </Grid>
-
-                <Dropdown onChange = { this.handleDifferenceDropdown } placeholder = 'Difference By' fluid selection options = {this.options} />
-
-                <Divider />
+                <Divider horizontal> Results Below </Divider>
                 <Grid divided = 'vertically'>
                     <Grid.Row columns = {2}>
                         <Grid.Column>
