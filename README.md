@@ -4,7 +4,10 @@ Being a back-end developer and not writing any test case it's a common mistake t
 I was looking for some JSON diff checkers online but found nothing that works pretty much exactly I want.
 
 So rather than spending a lots of time on Facebook, I started building a one for myself and assumed that this one may help others as well.
- 
+
+### How does it look?
+![Screenshot.png](https://raw.githubusercontent.com/ssi-anik/json-diff-checker/master/screenshots/fullscreen.png)
+
 ### Installation
 - An extension is available for Google Chrome.
 - Otherwise, you can just clone the repository
