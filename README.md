@@ -6,7 +6,7 @@ I was looking for some JSON diff checkers online but found nothing that works pr
 So rather than spending a lots of time on Facebook, I started building a one for myself and assumed that this one may help others as well.
 
 ### How does it look?
-![Screenshot.png](https://raw.githubusercontent.com/ssi-anik/json-diff-checker/master/screenshots/fullscreen.png)
+![Screenshot.png](https://raw.githubusercontent.com/ssi-anik/json-diff-checker/master/screenshots/fullscreen.jpg)
 
 ### Installation
 - An extension is available for Google Chrome.
