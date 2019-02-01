@@ -1,30 +1,10 @@
 import React, { Component } from "react";
-import { Container, Grid, Dropdown, Divider } from "semantic-ui-react";
+import { Container, Grid, Divider } from "semantic-ui-react";
 import { DataHolder } from "./DataHolder";
 import { Variation } from "./Variation";
+import { guess_data_type } from "./common";
 
 class App extends Component {
-
-    options = [
-        {
-            key: 'key',
-            value: 'key',
-            text: 'Keys Only',
-            icon: 'key'
-        },
-        {
-            key: 'value',
-            value: 'value',
-            text: 'Values Only',
-            icon: 'database'
-        },
-        {
-            key: 'all',
-            value: 'all',
-            text: 'All Mismatches',
-            icon: 'sync'
-        },
-    ];
 
     constructor (props) {
         super(props);
@@ -32,13 +12,11 @@ class App extends Component {
             sourceJson: {},
             destinationJson: {},
 
-            differenceType: 'key',
-
             sourceBy: '',
             destinationBy: '',
 
-            sourceDoesNotContain: [],
-            destinationDoesNotContain: [],
+            sourceDoesNotContain: {},
+            destinationDoesNotContain: {},
 
             sourceParseError: false,
             destinationParseError: false,
@@ -49,7 +27,6 @@ class App extends Component {
         this.leftFromUserOnChange = this.leftFromUserOnChange.bind(this);
         this.rightFromUserOnChange = this.rightFromUserOnChange.bind(this);
 
-        this.handleDifferenceDropdown = this.handleDifferenceDropdown.bind(this);
         this.showDifferences = this.showDifferences.bind(this);
     }
 
@@ -113,38 +90,54 @@ class App extends Component {
         });
     }
 
-    getObjectKeys (obj, root = '') {
-        let keys = [];
+    getObjectKeys (obj) {
+        let missing = {};
         for ( let key in obj ) {
-            let missingKey = root.length ? root + '[' + key + ']' : key;
-            if ( typeof obj[key] == typeof {} ) {
-                keys = keys.concat(this.getObjectKeys(obj[key], missingKey));
-            } else {
-                keys.push(missingKey);
+            let i = 0;
+            missing[key] = {};
+
+            missing[key][i++] = 'Type assumed: ' + guess_data_type(obj[key]);
+
+            if ( null !== obj[key] && typeof obj[key] === typeof {} ) {
+                missing[key] = { ...missing[key], ...this.getObjectKeys(obj[key]) };
             }
         }
 
-        return keys;
+        return missing;
     }
 
-    differenceByKey (source, destination, root = '') {
-        let changes = [];
+    findDifferences (source, destination) {
+        let changes = {};
         for ( let key in source ) {
-            let missingKey = root.length ? root + '[' + key + ']' : key;
-            // destination has the key
-            if ( destination[key] !== undefined ) {
+            let i = 0;
+
+            // initialize with empty array
+            changes[key] = {};
+
+            if ( destination[key] === undefined ) {
+                changes[key][i++] = 'Missing. (' + guess_data_type(source[key]) + ')';
+                // key not null & key is object, Fuck JS
+                if ( null !== source[key] && typeof source[key] === typeof {} ) {
+                    changes[key] = {...changes[key], ...this.getObjectKeys(source[key])};
+                    // changes[key] = changes[key].concat(this.getObjectKeys(source[key]));
+                }
+            } else if (guess_data_type(source[key]) !== (guess_data_type(destination[key])) || typeof source[key] !== typeof destination[key] ) { // first add the data type to the bucket
+                changes[key][i++] = 'Exists mismatched. (' + guess_data_type(source[key]) + ')';
+
+                if ( null !== source[key] && typeof source[key] === typeof {} ) {
+                    changes[key] = {...changes[key], ...this.getObjectKeys(source[key]) };
+                }
+            } else if ( destination[key] !== undefined ) { // destination has the key
                 // source key holds an object, but the destination doesn't hold any object
                 if ( typeof source[key] === typeof {} && typeof destination[key] !== typeof {} ) {
-                    changes = changes.concat(this.getObjectKeys(source[key], missingKey));
+                    changes[key] = changes[key].concat(this.getObjectKeys(source[key]));
                 } else if ( typeof source[key] === typeof {} && typeof source[key] === typeof destination[key] ) {
-                    changes = changes.concat(this.differenceByKey(source[key], destination[key], missingKey));
+                    changes[key] = changes[key].concat(this.findDifferences(source[key], destination[key]));
                 }
-            } else {
-                if ( typeof source[key] === typeof {} ) {
-                    changes = changes.concat(this.getObjectKeys(source[key], missingKey));
-                } else {
-                    changes.push(missingKey);
-                }
+            }
+
+            if ( Object.keys(changes[key]).length === 0 ) {
+                delete changes[key];
             }
         }
 
@@ -152,12 +145,6 @@ class App extends Component {
     }
 
     showDifferences () {
-        let type = this.state.differenceType;
-
-        if ( type.length === 0 ) {
-            return;
-        }
-
         if ( Object.keys(this.state.sourceJson).length === 0 ) {
             this.setState({
                 sourceJson: {}
@@ -176,29 +163,16 @@ class App extends Component {
             destinationDoesNotContain: [],
         });
 
-        switch ( type ) {
-            case 'value':
-                break;
-            case 'key':
-                let sourceDoesNotContain = this.differenceByKey(this.state.destinationJson, this.state.sourceJson);
-                this.setState({
-                    sourceDoesNotContain: sourceDoesNotContain
-                });
-                let destinationDoesNotContain = this.differenceByKey(this.state.sourceJson, this.state.destinationJson);
-                this.setState({
-                    destinationDoesNotContain: destinationDoesNotContain
-                });
-                break;
-            default:
-                return;
-        }
-    }
-
-    handleDifferenceDropdown (event, { value }) {
+        let sourceDoesNotContain = this.findDifferences(this.state.destinationJson, this.state.sourceJson);
         this.setState({
-            differenceType: value
+            sourceDoesNotContain: sourceDoesNotContain
         }, () => {
-            this.showDifferences();
+        });
+
+        let destinationDoesNotContain = this.findDifferences(this.state.sourceJson, this.state.destinationJson);
+        this.setState({
+            destinationDoesNotContain: destinationDoesNotContain
+        }, () => {
         });
     }
 
@@ -209,18 +183,9 @@ class App extends Component {
                 paddingRight: '15px',
                 paddingTop: '5px'
             }}>
-                <Dropdown
-                    onChange = { this.handleDifferenceDropdown }
-                    placeholder = 'Difference By'
-                    icon = 'sync alternate'
-                    fluid
-                    labeled
-                    button
-                    className = 'icon'
-                    selection
-                    defaultValue={'key'}
-                    options = {this.options} />
-                <Divider />
+                <Divider horizontal> JSON Diff Checker by
+                    <a href = 'https://github.com/ssi-anik' rel = "noopener noreferrer" target = '_blank'>@ssi-anik</a>
+                </Divider>
                 <Grid divided = 'vertically'>
                     <Grid.Row columns = {2}>
                         <Grid.Column>
@@ -244,18 +209,18 @@ class App extends Component {
                     <Grid.Row columns = {2}>
                         <Grid.Column>
                             {
-                                this.state.sourceDoesNotContain && this.state.sourceDoesNotContain instanceof Array && this.state.sourceDoesNotContain.length > 0 ?
+                                this.state.sourceDoesNotContain && Object.keys(this.state.sourceDoesNotContain).length > 0 ?
                                     <Variation
-                                        header = {"Varies from " + (this.state.destinationBy.length ? this.state.destinationBy : 'Server JSON' )}
+                                        header = {"Varies from " + (this.state.destinationBy.length ? this.state.destinationBy : 'Server JSON' ).toUpperCase()}
                                         differences = {this.state.sourceDoesNotContain} /> :
                                     ''
                             }
                         </Grid.Column>
                         <Grid.Column>
                             {
-                                this.state.destinationDoesNotContain && this.state.destinationDoesNotContain instanceof Array && this.state.destinationDoesNotContain.length > 0 ?
+                                this.state.destinationDoesNotContain && Object.keys(this.state.destinationDoesNotContain).length > 0 ?
                                     <Variation
-                                        header = {"Varies from " + (this.state.sourceBy.length ? this.state.sourceBy : 'Local JSON' )}
+                                        header = {"Varies from " + (this.state.sourceBy.length ? this.state.sourceBy : 'Local JSON' ).toUpperCase()}
                                         differences = {this.state.destinationDoesNotContain} /> :
                                     ''
                             }
