@@ -59,12 +59,3 @@ const ParseAsList = ({ keyName, data, root }) => {
         </List.Item>
     )
 }
-
-/*
- const ShowItem = (props) => {
- return (
- <List.Item key = {props.key}>
- {item}
- </List.Item>
- );
- }*/
