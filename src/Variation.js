@@ -33,7 +33,7 @@ const Parser = ({data}) => {
 
 const ParseAsList = ({ keyName, data, root }) => {
     return (
-        <List.Item as = 'li' value = '-'>
+        <List.Item as = 'li' value = '-' style = {{ paddingTop: '5px' }}>
             <Popup
                 trigger={<Label content={ keyName } />}
                 content={ root }
@@ -50,7 +50,7 @@ const ParseAsList = ({ keyName, data, root }) => {
                                 );
                             default:
                                 return (
-                                    <List.Item value = '-' as = 'li' key = {key}> { data[key] } </List.Item>
+                                    <List.Item value = '-' as = 'li' key = {key} style = {{ paddingTop: '5px' }}> { data[key] } </List.Item>
                                 );
                         }
                     })
