@@ -98,7 +98,7 @@ class App extends Component {
 
             missing[key][i++] = 'Type assumed: ' + guess_data_type(obj[key]);
 
-            if ( null !== obj[key] && typeof obj[key] === typeof {} ) {
+            if ( null !== obj[key] && typeof obj[key] === typeof {} && !Array.isArray(obj[key]) ) {
                 missing[key] = { ...missing[key], ...this.getObjectKeys(obj[key]) };
             }
         }
@@ -111,28 +111,29 @@ class App extends Component {
         for ( let key in source ) {
             let i = 0;
 
-            // initialize with empty array
+            // initialize with empty object
             changes[key] = {};
 
             if ( destination[key] === undefined ) {
                 changes[key][i++] = 'Missing. (' + guess_data_type(source[key]) + ')';
-                // key not null & key is object, Fuck JS
-                if ( null !== source[key] && typeof source[key] === typeof {} ) {
-                    changes[key] = {...changes[key], ...this.getObjectKeys(source[key])};
-                    // changes[key] = changes[key].concat(this.getObjectKeys(source[key]));
-                }
-            } else if (guess_data_type(source[key]) !== (guess_data_type(destination[key])) || typeof source[key] !== typeof destination[key] ) { // first add the data type to the bucket
-                changes[key][i++] = 'Exists mismatched. (' + guess_data_type(source[key]) + ')';
 
-                if ( null !== source[key] && typeof source[key] === typeof {} ) {
-                    changes[key] = {...changes[key], ...this.getObjectKeys(source[key]) };
+                if ( null !== source[key] && typeof source[key] === typeof {} && !Array.isArray(source[key]) ) {
+                    // key not null or  & key is object NOT ARRAY, Fuck JS
+                    changes[key] = { ...changes[key], ...this.getObjectKeys(source[key]) };
+                }
+            } else if ( guess_data_type(source[key]) !== guess_data_type(destination[key]) ) {
+                // first add the data type to the bucket
+                changes[key][i++] = 'Found Mismatched. (' + guess_data_type(source[key]) + ')';
+
+                if ( null !== source[key] && typeof source[key] === typeof {} && !Array.isArray(source[key]) ) {
+                    changes[key] = { ...changes[key], ...this.getObjectKeys(source[key]) };
                 }
             } else if ( destination[key] !== undefined ) { // destination has the key
                 // source key holds an object, but the destination doesn't hold any object
-                if ( typeof source[key] === typeof {} && typeof destination[key] !== typeof {} ) {
-                    changes[key] = changes[key].concat(this.getObjectKeys(source[key]));
-                } else if ( typeof source[key] === typeof {} && typeof source[key] === typeof destination[key] ) {
-                    changes[key] = changes[key].concat(this.findDifferences(source[key], destination[key]));
+                if ( !Array.isArray(source[key]) && typeof source[key] === typeof {} && typeof destination[key] !== typeof {} ) {
+                    changes[key] = { ...changes[key], ...this.getObjectKeys(source[key]) };
+                } else if ( !Array.isArray(source[key]) && typeof source[key] === typeof {} && typeof source[key] === typeof destination[key] ) {
+                    changes[key] = { ...changes[key], ...this.findDifferences(source[key], destination[key]) };
                 }
             }
 
@@ -211,7 +212,7 @@ class App extends Component {
                             {
                                 this.state.sourceDoesNotContain && Object.keys(this.state.sourceDoesNotContain).length > 0 ?
                                     <Variation
-                                        header = {"Varies from " + (this.state.destinationBy.length ? this.state.destinationBy : 'Server JSON' ).toUpperCase()}
+                                        header = {"Differences from " + (this.state.destinationBy.length ? this.state.destinationBy : 'Server JSON' ).toUpperCase()}
                                         differences = {this.state.sourceDoesNotContain} /> :
                                     ''
                             }
@@ -220,7 +221,7 @@ class App extends Component {
                             {
                                 this.state.destinationDoesNotContain && Object.keys(this.state.destinationDoesNotContain).length > 0 ?
                                     <Variation
-                                        header = {"Varies from " + (this.state.sourceBy.length ? this.state.sourceBy : 'Local JSON' ).toUpperCase()}
+                                        header = {"Differences from " + (this.state.sourceBy.length ? this.state.sourceBy : 'Local JSON' ).toUpperCase()}
                                         differences = {this.state.destinationDoesNotContain} /> :
                                     ''
                             }
