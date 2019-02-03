@@ -8,6 +8,10 @@ export function guess_data_type (value) {
         return 'Boolean';
     }
 
+    if ( typeof value === typeof {} && Array.isArray(value) ) {
+        return 'Array';
+    }
+
     if ( typeof value === typeof {} ) {
         return "Object";
     }
