@@ -19,10 +19,6 @@ export function guess_data_type (value) {
         return "Object";
     }
 
-    if ( typeof value !== 'string' ) {
-        value = value.toString();
-    }
-
     var nan = isNaN(Number(value));
     var isFloat = /^\d*(\.|,)\d*$/;
     var commaFloat = /^(\d{0,3}(,)?)+\.\d*$/;
@@ -38,6 +34,10 @@ export function guess_data_type (value) {
         }
 
         return 'String';
+    }
+
+    if ( typeof value !== 'string' ) {
+        value = value.toString();
     }
 
     if ( !nan ) {
