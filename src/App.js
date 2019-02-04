@@ -212,7 +212,7 @@ class App extends Component {
                             {
                                 this.state.sourceDoesNotContain && Object.keys(this.state.sourceDoesNotContain).length > 0 ?
                                     <Variation
-                                        header = {"Differs from " + (this.state.destinationBy.length ? this.state.destinationBy : 'Server JSON' ).toUpperCase()}
+                                        header = {"Differs from Right side (`" + (this.state.destinationBy.length ? this.state.destinationBy : 'Server JSON') + "`)".toUpperCase()}
                                         differences = {this.state.sourceDoesNotContain} /> :
                                     ''
                             }
@@ -221,7 +221,7 @@ class App extends Component {
                             {
                                 this.state.destinationDoesNotContain && Object.keys(this.state.destinationDoesNotContain).length > 0 ?
                                     <Variation
-                                        header = {"Differs from " + (this.state.sourceBy.length ? this.state.sourceBy : 'Local JSON' ).toUpperCase()}
+                                        header = {"Differs from Left side (`" + (this.state.sourceBy.length ? this.state.sourceBy : 'Local JSON') + "`)".toUpperCase()}
                                         differences = {this.state.destinationDoesNotContain} /> :
                                     ''
                             }
