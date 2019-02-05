@@ -9,7 +9,7 @@ So rather than spending a lots of time on Facebook, I started building a one for
 ![Screenshot.png](https://raw.githubusercontent.com/ssi-anik/json-diff-checker/master/screenshots/fullscreen.jpg)
 
 ### Installation
-- An extension is available for Google Chrome.
+- An extension is available for Google Chrome. (https://goo.gl/iHRSUW)
 - Otherwise, you can just clone the repository
     * `npm install` the dependencies.
     * `npm start` should start the project.
